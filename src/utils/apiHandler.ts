@@ -1,10 +1,12 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
+import { sendError } from '../lib/response';
+import { logger } from '../lib/logger';
 
 export type HandlerFn = (req: VercelRequest, res: VercelResponse) => Promise<any> | any;
 
 export function createApiHandler(handler: HandlerFn) {
   return async (req: VercelRequest, res: VercelResponse) => {
-    // Enable CORS for all incoming requests
+    // Set CORS headers
     res.setHeader('Access-Control-Allow-Credentials', 'true');
     res.setHeader('Access-Control-Allow-Origin', '*');
     res.setHeader('Access-Control-Allow-Methods', 'GET,OPTIONS,PATCH,DELETE,POST,PUT');
@@ -20,11 +22,8 @@ export function createApiHandler(handler: HandlerFn) {
     try {
       return await handler(req, res);
     } catch (err: any) {
-      console.error('[Vercel Serverless Function Error]', req.method, req.url, err);
-      return res.status(500).json({
-        success: false,
-        error: err.message || 'Error internal serverless function',
-      });
+      logger.error(`API Error on ${req.method} ${req.url}:`, err);
+      return sendError(res, err.message || 'Internal Server Error', 500);
     }
   };
 }

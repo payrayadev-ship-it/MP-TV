@@ -1,21 +1,19 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 import { createApiHandler } from '../src/utils/apiHandler';
-import { settingsService } from '../src/lib/services/settingsService';
+import { settingsService } from '../src/services/settingsService';
+import { handleSuccess } from '../src/utils/success';
+import { handleError } from '../src/utils/error';
 
 export default createApiHandler((req: VercelRequest, res: VercelResponse) => {
   if (req.method === 'GET') {
     const data = settingsService.getSettings();
-    return res.status(200).json({ success: true, data });
+    return handleSuccess(res, data, 'Pengaturan berhasil diambil');
   }
 
   if (req.method === 'POST') {
     const data = settingsService.update(req.body || {});
-    return res.status(200).json({
-      success: true,
-      message: 'Pengaturan berhasil disimpan',
-      data,
-    });
+    return handleSuccess(res, data, 'Pengaturan berhasil disimpan');
   }
 
-  return res.status(405).json({ success: false, error: 'Method Not Allowed' });
+  return handleError(res, 'Method Not Allowed', 405);
 });

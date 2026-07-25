@@ -1,21 +1,19 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 import { createApiHandler } from '../src/utils/apiHandler';
-import { newsService } from '../src/lib/services/newsService';
+import { newsService } from '../src/services/newsService';
+import { handleSuccess } from '../src/utils/success';
+import { handleError } from '../src/utils/error';
 
 export default createApiHandler(async (req: VercelRequest, res: VercelResponse) => {
   if (req.method === 'GET') {
     const data = await newsService.getAll();
-    return res.status(200).json({ success: true, data });
+    return handleSuccess(res, data, 'Daftar berita berhasil diambil');
   }
 
   if (req.method === 'POST') {
     const newArticle = await newsService.create(req.body || {});
-    return res.status(200).json({
-      success: true,
-      message: 'Berita berhasil diterbitkan',
-      data: newArticle,
-    });
+    return handleSuccess(res, newArticle, 'Berita berhasil diterbitkan', 201);
   }
 
-  return res.status(405).json({ success: false, error: 'Method Not Allowed' });
+  return handleError(res, 'Method Not Allowed', 405);
 });

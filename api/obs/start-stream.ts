@@ -1,11 +1,13 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 import { createApiHandler } from '../../src/utils/apiHandler';
-import { obsService } from '../../src/lib/services/obsService';
+import { obsService } from '../../src/services/obsService';
+import { handleSuccess } from '../../src/utils/success';
+import { handleError } from '../../src/utils/error';
 
 export default createApiHandler((req: VercelRequest, res: VercelResponse) => {
   if (req.method !== 'POST') {
-    return res.status(405).json({ success: false, error: 'Method Not Allowed' });
+    return handleError(res, 'Method Not Allowed', 405);
   }
-  obsService.startStream();
-  return res.status(200).json({ success: true, message: 'Siaran Live Streaming OBS Dimulai' });
+  const result = obsService.startStream();
+  return handleSuccess(res, result, 'Siaran Live Streaming OBS Dimulai');
 });

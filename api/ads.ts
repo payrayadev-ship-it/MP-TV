@@ -1,21 +1,19 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 import { createApiHandler } from '../src/utils/apiHandler';
-import { adsService } from '../src/lib/services/adsService';
+import { adsService } from '../src/services/adsService';
+import { handleSuccess } from '../src/utils/success';
+import { handleError } from '../src/utils/error';
 
 export default createApiHandler((req: VercelRequest, res: VercelResponse) => {
   if (req.method === 'GET') {
     const data = adsService.getAll();
-    return res.status(200).json({ success: true, data });
+    return handleSuccess(res, data, 'Daftar iklan berhasil diambil');
   }
 
   if (req.method === 'POST') {
     const data = adsService.create(req.body || {});
-    return res.status(200).json({
-      success: true,
-      message: 'Sponsor / Iklan baru berhasil ditambahkan',
-      data,
-    });
+    return handleSuccess(res, data, 'Sponsor / Iklan baru berhasil ditambahkan', 201);
   }
 
-  return res.status(405).json({ success: false, error: 'Method Not Allowed' });
+  return handleError(res, 'Method Not Allowed', 405);
 });

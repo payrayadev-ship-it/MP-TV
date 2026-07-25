@@ -1,21 +1,19 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 import { createApiHandler } from '../src/utils/apiHandler';
-import { runningTextService } from '../src/lib/services/runningTextService';
+import { runningTextService } from '../src/services/runningTextService';
+import { handleSuccess } from '../src/utils/success';
+import { handleError } from '../src/utils/error';
 
 export default createApiHandler((req: VercelRequest, res: VercelResponse) => {
   if (req.method === 'GET') {
     const data = runningTextService.getAll();
-    return res.status(200).json({ success: true, data });
+    return handleSuccess(res, data, 'Daftar running text berhasil diambil');
   }
 
   if (req.method === 'POST') {
     const data = runningTextService.create(req.body || {});
-    return res.status(200).json({
-      success: true,
-      message: 'Running text berhasil ditambahkan',
-      data,
-    });
+    return handleSuccess(res, data, 'Running text berhasil ditambahkan', 201);
   }
 
-  return res.status(405).json({ success: false, error: 'Method Not Allowed' });
+  return handleError(res, 'Method Not Allowed', 405);
 });

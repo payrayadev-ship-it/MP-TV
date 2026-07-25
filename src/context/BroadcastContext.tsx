@@ -136,40 +136,53 @@ export const BroadcastProvider: React.FC<{ children: React.ReactNode }> = ({ chi
   useEffect(() => {
     refreshData();
 
-    // Socket.IO init
-    const s = io();
-    setSocket(s);
-
-    s.on('connect', () => setIsConnected(true));
-    s.on('disconnect', () => setIsConnected(false));
-
-    s.on('dashboard_update', (data: DashboardStatus) => {
-      setDashboard(data);
-      if (data.obsStatus) setObsSettings(data.obsStatus);
-      if (data.youtubeStatus) setYoutubeStatus(data.youtubeStatus);
-    });
-
-    s.on('scene_changed', ({ currentScene, scenes }: { currentScene: string; scenes: ObsScene[] }) => {
-      setObsSettings((prev) => (prev ? { ...prev, currentScene } : null));
-      if (scenes) setScenes(scenes);
-    });
-
-    s.on('breaking_news_triggered', ({ breakingNews, currentScene }: any) => {
-      setObsSettings((prev) => (prev ? { ...prev, currentScene } : null));
+    // Auto-refresh interval for Vercel Serverless environment
+    const interval = setInterval(() => {
       refreshData();
-    });
+    }, 5000);
 
-    s.on('breaking_news_ended', ({ currentScene }: any) => {
-      setObsSettings((prev) => (prev ? { ...prev, currentScene } : null));
-      refreshData();
-    });
+    // Optional Socket.IO init with silent failure fallback
+    let s: Socket | null = null;
+    try {
+      s = io({ autoConnect: false, reconnectionAttempts: 2, timeout: 3000 });
+      setSocket(s);
 
-    s.on('ai_presenter_completed', () => {
-      refreshData();
-    });
+      s.on('connect', () => setIsConnected(true));
+      s.on('disconnect', () => setIsConnected(false));
+
+      s.on('dashboard_update', (data: DashboardStatus) => {
+        setDashboard(data);
+        if (data.obsStatus) setObsSettings(data.obsStatus);
+        if (data.youtubeStatus) setYoutubeStatus(data.youtubeStatus);
+      });
+
+      s.on('scene_changed', ({ currentScene, scenes }: { currentScene: string; scenes: ObsScene[] }) => {
+        setObsSettings((prev) => (prev ? { ...prev, currentScene } : null));
+        if (scenes) setScenes(scenes);
+      });
+
+      s.on('breaking_news_triggered', ({ currentScene }: any) => {
+        setObsSettings((prev) => (prev ? { ...prev, currentScene } : null));
+        refreshData();
+      });
+
+      s.on('breaking_news_ended', ({ currentScene }: any) => {
+        setObsSettings((prev) => (prev ? { ...prev, currentScene } : null));
+        refreshData();
+      });
+
+      s.on('ai_presenter_completed', () => {
+        refreshData();
+      });
+
+      s.connect();
+    } catch {
+      setIsConnected(false);
+    }
 
     return () => {
-      s.disconnect();
+      clearInterval(interval);
+      if (s) s.disconnect();
     };
   }, []);
 

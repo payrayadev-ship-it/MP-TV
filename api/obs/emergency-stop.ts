@@ -1,11 +1,13 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 import { createApiHandler } from '../../src/utils/apiHandler';
-import { obsService } from '../../src/lib/services/obsService';
+import { obsService } from '../../src/services/obsService';
+import { handleSuccess } from '../../src/utils/success';
+import { handleError } from '../../src/utils/error';
 
 export default createApiHandler((req: VercelRequest, res: VercelResponse) => {
   if (req.method !== 'POST') {
-    return res.status(405).json({ success: false, error: 'Method Not Allowed' });
+    return handleError(res, 'Method Not Allowed', 405);
   }
   const result = obsService.emergencyStop();
-  return res.status(200).json({ success: true, message: result.message, obs: result.obsStatus });
+  return handleSuccess(res, result.obsStatus, result.message);
 });
