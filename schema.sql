@@ -1,94 +1,9 @@
-import { createClient, SupabaseClient } from '@supabase/supabase-js';
+-- ====================================================================
+-- MAJALENGKA POST TV (MPTV) BROADCAST AUTOMATION - COMPLETE SUPABASE MIGRATION SCRIPT
+-- PostgreSQL / Supabase Schema with Foreign Keys, Indexes, Audit Triggers & RLS
+-- ====================================================================
 
-// Helper to get configuration from environment variables or localStorage
-export const getSupabaseConfig = () => {
-  const envUrl = (import.meta.env.VITE_SUPABASE_URL || '').trim();
-  const envKey = (import.meta.env.VITE_SUPABASE_ANON_KEY || '').trim();
-
-  const localUrl = (typeof window !== 'undefined' ? localStorage.getItem('MPTV_SUPABASE_URL') || '' : '').trim();
-  const localKey = (typeof window !== 'undefined' ? localStorage.getItem('MPTV_SUPABASE_ANON_KEY') || '' : '').trim();
-
-  const url = localUrl || envUrl;
-  const anonKey = localKey || envKey;
-
-  return { url, anonKey };
-};
-
-let supabaseInstance: SupabaseClient | null = null;
-
-export function isValidSupabaseUrl(url: string): boolean {
-  if (!url || typeof url !== 'string') return false;
-  const trimmed = url.trim();
-  if (trimmed.includes('your-supabase-project.supabase.co') || trimmed.includes('example.com')) {
-    return false;
-  }
-  try {
-    const parsed = new URL(trimmed);
-    return parsed.protocol === 'http:' || parsed.protocol === 'https:';
-  } catch {
-    return false;
-  }
-}
-
-export function isValidSupabaseKey(key: string): boolean {
-  if (!key || typeof key !== 'string') return false;
-  const trimmed = key.trim();
-  if (trimmed.includes('your-supabase-anon-key') || trimmed.length < 10) {
-    return false;
-  }
-  return true;
-}
-
-export function isSupabaseConfigured(): boolean {
-  const { url, anonKey } = getSupabaseConfig();
-  return isValidSupabaseUrl(url) && isValidSupabaseKey(anonKey);
-}
-
-export function getSupabaseClient(): SupabaseClient | null {
-  const { url, anonKey } = getSupabaseConfig();
-  
-  if (!isValidSupabaseUrl(url) || !isValidSupabaseKey(anonKey)) {
-    return null;
-  }
-
-  if (!supabaseInstance) {
-    try {
-      supabaseInstance = createClient(url, anonKey, {
-        auth: {
-          persistSession: true,
-          autoRefreshToken: true,
-        },
-      });
-    } catch (err) {
-      console.error('[Supabase Init Error]', err);
-      supabaseInstance = null;
-    }
-  }
-
-  return supabaseInstance;
-}
-
-export function saveSupabaseCredentials(url: string, anonKey: string) {
-  if (typeof window === 'undefined') return;
-
-  if (url && isValidSupabaseUrl(url)) {
-    localStorage.setItem('MPTV_SUPABASE_URL', url.trim());
-  } else if (!url) {
-    localStorage.removeItem('MPTV_SUPABASE_URL');
-  }
-
-  if (anonKey && isValidSupabaseKey(anonKey)) {
-    localStorage.setItem('MPTV_SUPABASE_ANON_KEY', anonKey.trim());
-  } else if (!anonKey) {
-    localStorage.removeItem('MPTV_SUPABASE_ANON_KEY');
-  }
-
-  supabaseInstance = null; // Reset instance
-}
-
-// SQL Schema Definition helper for MPTV Broadcast tables
-export const SUPABASE_SQL_SCHEMA = `-- MAJALENGKA POST TV (MPTV) BROADCAST AUTOMATION - COMPLETE SUPABASE MIGRATION SCRIPT
-
+-- Enable UUID extension if required
 CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 
 -- 1. USERS & OPERATORS TABLE
@@ -96,7 +11,7 @@ CREATE TABLE IF NOT EXISTS public.mptv_users (
   id TEXT PRIMARY KEY,
   name TEXT NOT NULL,
   email TEXT NOT NULL UNIQUE,
-  role TEXT NOT NULL DEFAULT 'Operator',
+  role TEXT NOT NULL DEFAULT 'Operator', -- 'Admin', 'Producer', 'Operator', 'Viewer'
   avatar_url TEXT,
   is_active BOOLEAN DEFAULT TRUE,
   last_active TIMESTAMPTZ DEFAULT NOW(),
@@ -166,7 +81,7 @@ CREATE TABLE IF NOT EXISTS public.mptv_running_text (
   id TEXT PRIMARY KEY,
   text TEXT NOT NULL,
   category TEXT DEFAULT 'Berita',
-  speed TEXT DEFAULT 'medium',
+  speed TEXT DEFAULT 'medium', -- 'slow', 'medium', 'fast'
   font_size INTEGER DEFAULT 22,
   color TEXT DEFAULT '#FFFFFF',
   background_color TEXT DEFAULT '#D50000',
@@ -181,7 +96,7 @@ CREATE TABLE IF NOT EXISTS public.mptv_breaking_news (
   id TEXT PRIMARY KEY,
   title TEXT NOT NULL,
   content TEXT NOT NULL,
-  priority TEXT DEFAULT 'Emergency',
+  priority TEXT DEFAULT 'Emergency', -- 'Emergency', 'Urgent', 'Standard'
   duration_sec INTEGER DEFAULT 20,
   is_active BOOLEAN DEFAULT TRUE,
   auto_trigger_obs BOOLEAN DEFAULT TRUE,
@@ -197,19 +112,19 @@ CREATE TABLE IF NOT EXISTS public.mptv_news (
   content TEXT NOT NULL,
   author TEXT DEFAULT 'Reporter MPTV',
   published_at TIMESTAMPTZ DEFAULT NOW(),
-  status TEXT DEFAULT 'Published',
+  status TEXT DEFAULT 'Published', -- 'Draft', 'Published', 'Archived'
   views_count INTEGER DEFAULT 0,
   featured BOOLEAN DEFAULT FALSE,
   is_breaking BOOLEAN DEFAULT FALSE,
   created_at TIMESTAMPTZ DEFAULT NOW()
 );
 
--- 9. ADVERTISEMENTS TABLE
+-- 9. ADVERTISEMENTS & SPONSOR SLOTS TABLE
 CREATE TABLE IF NOT EXISTS public.mptv_advertisements (
   id TEXT PRIMARY KEY,
   title TEXT NOT NULL,
   sponsor_name TEXT NOT NULL,
-  ad_type TEXT DEFAULT 'video',
+  ad_type TEXT DEFAULT 'video', -- 'video', 'banner', 'overlay'
   media_url TEXT NOT NULL,
   duration_sec INTEGER DEFAULT 30,
   schedule_time TEXT DEFAULT '12:00',
@@ -246,7 +161,10 @@ CREATE TABLE IF NOT EXISTS public.mptv_logs (
   details JSONB
 );
 
--- INDEXES
+-- ====================================================================
+-- INDEXES FOR PERFORMANCE OPTIMIZATION
+-- ====================================================================
+
 CREATE INDEX IF NOT EXISTS idx_mptv_news_published_at ON public.mptv_news(published_at DESC);
 CREATE INDEX IF NOT EXISTS idx_mptv_news_category ON public.mptv_news(category);
 CREATE INDEX IF NOT EXISTS idx_mptv_videos_category ON public.mptv_videos(category);
@@ -254,7 +172,10 @@ CREATE INDEX IF NOT EXISTS idx_mptv_playlist_items_playlist ON public.mptv_playl
 CREATE INDEX IF NOT EXISTS idx_mptv_schedules_date_time ON public.mptv_schedules(schedule_date, start_time);
 CREATE INDEX IF NOT EXISTS idx_mptv_logs_timestamp ON public.mptv_logs(timestamp DESC);
 
--- AUTOMATIC AUDIT LOGGING TRIGGER
+-- ====================================================================
+-- AUTOMATIC AUDIT LOGGING TRIGGERS
+-- ====================================================================
+
 CREATE OR REPLACE FUNCTION public.fn_log_mptv_activity()
 RETURNS TRIGGER AS $$
 BEGIN
@@ -275,12 +196,26 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
+-- Apply Triggers
 DROP TRIGGER IF EXISTS trg_log_news_changes ON public.mptv_news;
 CREATE TRIGGER trg_log_news_changes
 AFTER INSERT OR UPDATE OR DELETE ON public.mptv_news
 FOR EACH ROW EXECUTE FUNCTION public.fn_log_mptv_activity();
 
--- ROW LEVEL SECURITY (RLS) POLICIES
+DROP TRIGGER IF EXISTS trg_log_obs_changes ON public.mptv_obs_settings;
+CREATE TRIGGER trg_log_obs_changes
+AFTER INSERT OR UPDATE ON public.mptv_obs_settings
+FOR EACH ROW EXECUTE FUNCTION public.fn_log_mptv_activity();
+
+DROP TRIGGER IF EXISTS trg_log_breaking_news_changes ON public.mptv_breaking_news;
+CREATE TRIGGER trg_log_breaking_news_changes
+AFTER INSERT OR UPDATE ON public.mptv_breaking_news
+FOR EACH ROW EXECUTE FUNCTION public.fn_log_mptv_activity();
+
+-- ====================================================================
+-- ROW LEVEL SECURITY (RLS) POLICIES FOR SUPABASE
+-- ====================================================================
+
 ALTER TABLE public.mptv_users ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.mptv_videos ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.mptv_playlists ENABLE ROW LEVEL SECURITY;
@@ -293,6 +228,7 @@ ALTER TABLE public.mptv_advertisements ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.mptv_schedules ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.mptv_logs ENABLE ROW LEVEL SECURITY;
 
+-- Allow Public Read & Write Policies for Studio Control Room Operators
 CREATE POLICY "Allow public read mptv_users" ON public.mptv_users FOR SELECT USING (true);
 CREATE POLICY "Allow public write mptv_users" ON public.mptv_users FOR ALL USING (true);
 
@@ -325,74 +261,23 @@ CREATE POLICY "Allow public write mptv_schedules" ON public.mptv_schedules FOR A
 
 CREATE POLICY "Allow public read mptv_logs" ON public.mptv_logs FOR SELECT USING (true);
 CREATE POLICY "Allow public write mptv_logs" ON public.mptv_logs FOR ALL USING (true);
-`;
 
-// Sync Data Helpers
-export async function syncNewsToSupabase(newsList: any[]) {
-  const client = getSupabaseClient();
-  if (!client) return { success: false, error: 'Supabase client not initialized' };
+-- ====================================================================
+-- INITIAL SEED DATA (MAJALENGKA POST TV INITIAL STATE)
+-- ====================================================================
 
-  try {
-    const formatted = newsList.map((n) => ({
-      id: String(n.id),
-      title: n.title,
-      category: n.category,
-      content: n.content,
-      author: n.author,
-      published_at: n.publishedAt || new Date().toISOString(),
-      status: n.status || 'Published',
-      views_count: n.viewsCount || 0,
-      featured: Boolean(n.featured),
-    }));
+INSERT INTO public.mptv_users (id, name, email, role, avatar_url)
+VALUES
+('u-1', 'Ahmad Faisal', 'ahmad.faisal@majalengkapost.tv', 'Producer', 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150'),
+('u-2', 'Siti Rahmawati', 'siti.rahmawati@majalengkapost.tv', 'Operator', 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150')
+ON CONFLICT (id) DO NOTHING;
 
-    const { data, error } = await client.from('mptv_news').upsert(formatted, { onConflict: 'id' });
-    if (error) throw error;
-    return { success: true, count: newsList.length, data };
-  } catch (err: any) {
-    return { success: false, error: err.message || 'Failed to sync news to Supabase' };
-  }
-}
+INSERT INTO public.mptv_news (id, title, category, content, author, views_count, featured)
+VALUES
+('news-1', 'Pemkab Majalengka Resmikan Pusat Kebudayaan Sunda', 'Pemerintah', 'Pemerintah Kabupaten Majalengka resmi membuka gedung pusat kebudayaan Sunda baru untuk mendorong pariwisata daerah.', 'Ahmad Faisal', 1240, true),
+('news-2', 'Festival Kuliner Khas Majalengka Sedot Ribuan Pengunjung', 'Kuliner', 'Ribuan warga memadati alun-alun Majalengka dalam gelaran festival kuliner khas daerah seperti Jalakotek dan Lengko.', 'Siti Rahmawati', 890, false)
+ON CONFLICT (id) DO NOTHING;
 
-export async function fetchNewsFromSupabase() {
-  const client = getSupabaseClient();
-  if (!client) return null;
-
-  try {
-    const { data, error } = await client
-      .from('mptv_news')
-      .select('*')
-      .order('published_at', { ascending: false });
-    if (error) throw error;
-    return data;
-  } catch {
-    return null;
-  }
-}
-
-export async function testSupabaseConnection(): Promise<{ connected: boolean; message: string }> {
-  const client = getSupabaseClient();
-  if (!client) {
-    return {
-      connected: false,
-      message: 'Supabase URL & Anon Key belum dikonfigurasi. Silakan masukkan kredensial Supabase.',
-    };
-  }
-
-  try {
-    const { error } = await client.from('mptv_news').select('id').limit(1);
-    if (error && error.code !== 'PGRST116') {
-      // Table missing or policy issue, but connection reached Supabase
-      if (error.message.includes('does not exist')) {
-        return {
-          connected: true,
-          message: 'Terkoneksi ke Supabase! (Tabel mptv_news belum dibuat. Silakan jalankan script SQL di bawah).',
-        };
-      }
-      return { connected: false, message: `Error Supabase: ${error.message}` };
-    }
-
-    return { connected: true, message: 'Koneksi ke database Supabase BERHASIL & aktif!' };
-  } catch (err: any) {
-    return { connected: false, message: `Gagal menghubungkan ke Supabase: ${err.message}` };
-  }
-}
+INSERT INTO public.mptv_obs_settings (id, is_streaming, is_recording, current_scene, fps, cpu_usage, memory_usage)
+VALUES ('current', true, true, 'Studio Utama', 60, 14.2, 38.5)
+ON CONFLICT (id) DO NOTHING;

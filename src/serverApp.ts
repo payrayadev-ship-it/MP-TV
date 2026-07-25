@@ -98,6 +98,17 @@ export function getDashboardData() {
 
 export const app = express();
 
+// CORS & JSON Parser Middlewares
+app.use((req, res, next) => {
+  res.header('Access-Control-Allow-Origin', '*');
+  res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization');
+  res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
+  if (req.method === 'OPTIONS') {
+    return res.sendStatus(200);
+  }
+  next();
+});
+
 app.use(express.json({ limit: '50mb' }));
 app.use(express.urlencoded({ extended: true, limit: '50mb' }));
 
@@ -605,5 +616,14 @@ app.get('/api/analytics', (req, res) => {
         { time: '09:30', cpu: 18, ram: 42, bandwidth: 18 },
       ],
     },
+  });
+});
+
+// Global API Error Handling Middleware
+app.use((err: any, req: express.Request, res: express.Response, next: express.NextFunction) => {
+  console.error('[API ERROR]', req.method, req.url, err);
+  res.status(500).json({
+    success: false,
+    error: err?.message || 'Internal Server Error',
   });
 });
