@@ -1,0 +1,6 @@
+{
+  "name": "Majalengka Post TV Automation",
+  "description": "Pusat Kendali Siaran TV Digital 24 Jam Berbasis OBS Studio untuk Majalengka Post TV",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
