@@ -123,13 +123,21 @@ function emitEvent(event: string, data?: any) {
 
 // ==================== REST API ROUTES ====================
 
-// GET /api/dashboard
-app.get('/api/dashboard', (req, res) => {
+const apiRouter = express.Router();
+
+// Helper to support both /path and /api/path
+const get = (path: string, handler: express.RequestHandler) => apiRouter.get([path, `/api${path}`], handler);
+const post = (path: string, handler: express.RequestHandler) => apiRouter.post([path, `/api${path}`], handler);
+const put = (path: string, handler: express.RequestHandler) => apiRouter.put([path, `/api${path}`], handler);
+const del = (path: string, handler: express.RequestHandler) => apiRouter.delete([path, `/api${path}`], handler);
+
+// GET /dashboard
+get('/dashboard', (req, res) => {
   res.json({ success: true, data: getDashboardData() });
 });
 
-// GET /api/obs/status
-app.get('/api/obs/status', (req, res) => {
+// GET /obs/status
+get('/obs/status', (req, res) => {
   res.json({
     success: true,
     obs: state.obsSettings,
@@ -139,7 +147,7 @@ app.get('/api/obs/status', (req, res) => {
 });
 
 // POST /api/obs/connect
-app.post('/api/obs/connect', (req, res) => {
+post('/obs/connect', (req, res) => {
   const { host, port, password } = req.body;
   if (host) state.obsSettings.host = host;
   if (port) state.obsSettings.port = Number(port);
@@ -150,22 +158,22 @@ app.post('/api/obs/connect', (req, res) => {
   res.json({ success: true, message: 'OBS WebSocket terhubung sukses', obs: state.obsSettings });
 });
 
-// POST /api/obs/start-stream
-app.post('/api/obs/start-stream', (req, res) => {
+// POST /obs/start-stream
+post('/obs/start-stream', (req, res) => {
   state.obsSettings.isStreaming = true;
   emitEvent('obs_updated', state.obsSettings);
   res.json({ success: true, message: 'Siaran Live Streaming OBS Dimulai' });
 });
 
-// POST /api/obs/stop-stream
-app.post('/api/obs/stop-stream', (req, res) => {
+// POST /obs/stop-stream
+post('/obs/stop-stream', (req, res) => {
   state.obsSettings.isStreaming = false;
   emitEvent('obs_updated', state.obsSettings);
   res.json({ success: true, message: 'Siaran Live Streaming OBS Dihentikan' });
 });
 
-// POST /api/obs/emergency-stop
-app.post('/api/obs/emergency-stop', (req, res) => {
+// POST /obs/emergency-stop
+post('/obs/emergency-stop', (req, res) => {
   state.obsSettings.isStreaming = false;
   state.obsSettings.isRecording = false;
   state.obsSettings.currentScene = 'Commercial & Ad Block';
@@ -179,8 +187,8 @@ app.post('/api/obs/emergency-stop', (req, res) => {
   res.json({ success: true, message: 'EMERGENCY STOP: Siaran dihentikan secara darurat!' });
 });
 
-// POST /api/obs/change-scene
-app.post('/api/obs/change-scene', (req, res) => {
+// POST /obs/change-scene
+post('/obs/change-scene', (req, res) => {
   const { sceneName } = req.body;
   if (!sceneName) {
     return res.status(400).json({ success: false, error: 'sceneName diperlukan' });
@@ -195,11 +203,11 @@ app.post('/api/obs/change-scene', (req, res) => {
 });
 
 // PLAYLIST ENDPOINTS
-app.get('/api/playlist', (req, res) => {
+get('/playlist', (req, res) => {
   res.json({ success: true, data: state.playlists });
 });
 
-app.post('/api/playlist', (req, res) => {
+post('/playlist', (req, res) => {
   const newPl: Playlist = {
     id: `pl-${Date.now()}`,
     name: req.body.name || 'Playlist Baru Majalengka',
@@ -214,7 +222,7 @@ app.post('/api/playlist', (req, res) => {
   res.json({ success: true, data: newPl });
 });
 
-app.put('/api/playlist', (req, res) => {
+put('/playlist', (req, res) => {
   const { id, name, repeat, shuffle, items, active } = req.body;
   const index = state.playlists.findIndex((p) => p.id === id);
   if (index !== -1) {
@@ -231,18 +239,18 @@ app.put('/api/playlist', (req, res) => {
   res.status(404).json({ success: false, error: 'Playlist tidak ditemukan' });
 });
 
-app.delete('/api/playlist', (req, res) => {
+del('/playlist', (req, res) => {
   const id = (req.query.id as string) || req.body.id;
   state.playlists = state.playlists.filter((p) => p.id !== id);
   res.json({ success: true, message: 'Playlist berhasil dihapus' });
 });
 
 // RUNNING TEXT ENDPOINTS
-app.get('/api/running-text', (req, res) => {
+get('/running-text', (req, res) => {
   res.json({ success: true, data: state.runningTexts });
 });
 
-app.post('/api/running-text', (req, res) => {
+post('/running-text', (req, res) => {
   const newRt: RunningText = {
     id: `rt-${Date.now()}`,
     text: req.body.text || 'Running text baru Majalengka Post TV',
@@ -262,11 +270,11 @@ app.post('/api/running-text', (req, res) => {
 });
 
 // BREAKING NEWS ENDPOINTS
-app.get('/api/breaking-news', (req, res) => {
+get('/breaking-news', (req, res) => {
   res.json({ success: true, data: state.breakingNews });
 });
 
-app.post('/api/breaking-news', (req, res) => {
+post('/breaking-news', (req, res) => {
   const { title, content, priority, durationSeconds, autoTriggerObs } = req.body;
   const newBn: BreakingNews = {
     id: `bn-${Date.now()}`,
@@ -307,11 +315,11 @@ app.post('/api/breaking-news', (req, res) => {
 });
 
 // VIDEOS ENDPOINTS
-app.get('/api/videos', (req, res) => {
+get('/videos', (req, res) => {
   res.json({ success: true, data: state.videos });
 });
 
-app.post('/api/upload-video', (req, res) => {
+post('/upload-video', (req, res) => {
   const { title, description, category, tags, durationSeconds, videoUrl, thumbnailUrl } = req.body;
   const newVid: VideoItem = {
     id: `vid-${Date.now()}`,
@@ -346,11 +354,11 @@ app.post('/api/upload-video', (req, res) => {
 });
 
 // NEWS ENDPOINT
-app.get('/api/news', (req, res) => {
+get('/news', (req, res) => {
   res.json({ success: true, data: state.news });
 });
 
-app.post('/api/news', (req, res) => {
+post('/news', (req, res) => {
   const { title, content, category, author, isBreaking, status } = req.body;
   const newArticle: NewsArticle = {
     id: `news-${Date.now()}`,
@@ -416,11 +424,11 @@ app.post('/api/news', (req, res) => {
 });
 
 // AI PRESENTER ENDPOINT WITH GEMINI INTEGRATION
-app.get('/api/ai-presenter', (req, res) => {
+get('/ai-presenter', (req, res) => {
   res.json({ success: true, data: state.aiPresenterTasks });
 });
 
-app.post('/api/ai-presenter/generate', async (req, res) => {
+post('/ai-presenter/generate', async (req, res) => {
   const { newsTitle, newsContent, voiceGender, autoAddToPlaylistId } = req.body;
 
   const newTask: AiPresenterTask = {
@@ -505,11 +513,11 @@ Format output: Berikan naskah lengkap siap baca dengan sapaan khas Majalengka Po
 });
 
 // SCHEDULES ENDPOINTS
-app.get('/api/schedules', (req, res) => {
+get('/schedules', (req, res) => {
   res.json({ success: true, data: state.schedules });
 });
 
-app.post('/api/schedules', (req, res) => {
+post('/schedules', (req, res) => {
   const newSch: ScheduleItem = {
     id: `sch-${Date.now()}`,
     programTitle: req.body.programTitle || 'Program Siaran Majalengka TV',
@@ -527,11 +535,11 @@ app.post('/api/schedules', (req, res) => {
 });
 
 // ADVERTISEMENT ENDPOINTS
-app.get('/api/ads', (req, res) => {
+get('/ads', (req, res) => {
   res.json({ success: true, data: state.ads });
 });
 
-app.post('/api/ads', (req, res) => {
+post('/ads', (req, res) => {
   const newAd: Advertisement = {
     id: `ad-${Date.now()}`,
     title: req.body.title || 'Iklan Sponsor Baru',
@@ -549,21 +557,21 @@ app.post('/api/ads', (req, res) => {
 });
 
 // WEATHER ENDPOINT
-app.get('/api/weather', (req, res) => {
+get('/weather', (req, res) => {
   res.json({ success: true, data: state.weather, lastSync: new Date().toISOString() });
 });
 
 // YOUTUBE LIVE ENDPOINT
-app.get('/api/youtube', (req, res) => {
+get('/youtube', (req, res) => {
   res.json({ success: true, data: state.youtubeStatus });
 });
 
 // USERS & ROLES ENDPOINTS
-app.get('/api/users', (req, res) => {
+get('/users', (req, res) => {
   res.json({ success: true, data: state.users });
 });
 
-app.post('/api/users', (req, res) => {
+post('/users', (req, res) => {
   const newUser: User = {
     id: `u-${Date.now()}`,
     name: req.body.name,
@@ -578,17 +586,17 @@ app.post('/api/users', (req, res) => {
 });
 
 // SETTINGS ENDPOINTS
-app.get('/api/settings', (req, res) => {
+get('/settings', (req, res) => {
   res.json({ success: true, data: state.settings });
 });
 
-app.post('/api/settings', (req, res) => {
+post('/settings', (req, res) => {
   state.settings = { ...state.settings, ...req.body };
   res.json({ success: true, data: state.settings, message: 'Pengaturan berhasil disimpan' });
 });
 
 // ANALYTICS ENDPOINT
-app.get('/api/analytics', (req, res) => {
+get('/analytics', (req, res) => {
   res.json({
     success: true,
     data: {
@@ -617,6 +625,21 @@ app.get('/api/analytics', (req, res) => {
       ],
     },
   });
+});
+
+// Mount router at /api and root /
+app.use('/api', apiRouter);
+app.use('/', apiRouter);
+
+// Catch-all 404 for unhandled API requests
+app.use((req, res, next) => {
+  if (req.url.startsWith('/api') || req.path.startsWith('/api') || req.headers.accept?.includes('application/json')) {
+    return res.status(404).json({
+      success: false,
+      error: `Route not found: ${req.method} ${req.url}`,
+    });
+  }
+  next();
 });
 
 // Global API Error Handling Middleware

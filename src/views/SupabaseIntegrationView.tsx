@@ -36,8 +36,9 @@ export const SupabaseIntegrationView: React.FC = () => {
   const [fetchedNewsCount, setFetchedNewsCount] = useState<number | null>(null);
 
   useEffect(() => {
-    const url = import.meta.env.VITE_SUPABASE_URL || localStorage.getItem('MPTV_SUPABASE_URL') || '';
-    const key = import.meta.env.VITE_SUPABASE_ANON_KEY || localStorage.getItem('MPTV_SUPABASE_ANON_KEY') || '';
+    const env = (import.meta as any).env || {};
+    const url = env.VITE_SUPABASE_URL || localStorage.getItem('MPTV_SUPABASE_URL') || '';
+    const key = env.VITE_SUPABASE_ANON_KEY || localStorage.getItem('MPTV_SUPABASE_ANON_KEY') || '';
     setSupabaseUrl(url);
     setSupabaseKey(key);
 

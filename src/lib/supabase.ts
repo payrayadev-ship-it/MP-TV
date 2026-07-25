@@ -2,8 +2,9 @@ import { createClient, SupabaseClient } from '@supabase/supabase-js';
 
 // Helper to get configuration from environment variables or localStorage
 export const getSupabaseConfig = () => {
-  const envUrl = (import.meta.env.VITE_SUPABASE_URL || '').trim();
-  const envKey = (import.meta.env.VITE_SUPABASE_ANON_KEY || '').trim();
+  const env = (import.meta as any).env || {};
+  const envUrl = (env.VITE_SUPABASE_URL || '').trim();
+  const envKey = (env.VITE_SUPABASE_ANON_KEY || '').trim();
 
   const localUrl = (typeof window !== 'undefined' ? localStorage.getItem('MPTV_SUPABASE_URL') || '' : '').trim();
   const localKey = (typeof window !== 'undefined' ? localStorage.getItem('MPTV_SUPABASE_ANON_KEY') || '' : '').trim();

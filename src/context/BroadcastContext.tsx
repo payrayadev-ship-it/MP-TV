@@ -70,23 +70,45 @@ export const BroadcastProvider: React.FC<{ children: React.ReactNode }> = ({ chi
   const [weatherList, setWeatherList] = useState<WeatherData[]>([]);
   const [settings, setSettings] = useState<AppSettings | null>(null);
 
+  const safeFetchJson = async (url: string) => {
+    try {
+      const res = await fetch(url, {
+        headers: { Accept: 'application/json' },
+      });
+      if (!res.ok) {
+        console.warn(`[BroadcastContext] API ${url} returned status ${res.status}`);
+        return { success: false };
+      }
+      const text = await res.text();
+      try {
+        return JSON.parse(text);
+      } catch (jsonErr) {
+        console.warn(`[BroadcastContext] API ${url} did not return valid JSON:`, text.substring(0, 100));
+        return { success: false };
+      }
+    } catch (err) {
+      console.warn(`[BroadcastContext] Network error fetching ${url}:`, err);
+      return { success: false };
+    }
+  };
+
   const refreshData = async () => {
     try {
       const [dashRes, obsRes, vidRes, plRes, schRes, bnRes, rtRes, newsRes, adRes, ytRes, aiRes, wRes, setRes] =
         await Promise.all([
-          fetch('/api/dashboard').then((r) => r.json()),
-          fetch('/api/obs/status').then((r) => r.json()),
-          fetch('/api/videos').then((r) => r.json()),
-          fetch('/api/playlist').then((r) => r.json()),
-          fetch('/api/schedules').then((r) => r.json()),
-          fetch('/api/breaking-news').then((r) => r.json()),
-          fetch('/api/running-text').then((r) => r.json()),
-          fetch('/api/news').then((r) => r.json()),
-          fetch('/api/ads').then((r) => r.json()),
-          fetch('/api/youtube').then((r) => r.json()),
-          fetch('/api/ai-presenter').then((r) => r.json()),
-          fetch('/api/weather').then((r) => r.json()),
-          fetch('/api/settings').then((r) => r.json()),
+          safeFetchJson('/api/dashboard'),
+          safeFetchJson('/api/obs/status'),
+          safeFetchJson('/api/videos'),
+          safeFetchJson('/api/playlist'),
+          safeFetchJson('/api/schedules'),
+          safeFetchJson('/api/breaking-news'),
+          safeFetchJson('/api/running-text'),
+          safeFetchJson('/api/news'),
+          safeFetchJson('/api/ads'),
+          safeFetchJson('/api/youtube'),
+          safeFetchJson('/api/ai-presenter'),
+          safeFetchJson('/api/weather'),
+          safeFetchJson('/api/settings'),
         ]);
 
       if (dashRes.success) setDashboard(dashRes.data);
