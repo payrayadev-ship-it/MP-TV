@@ -62,19 +62,36 @@ function apiDevPlugin(): Plugin {
             }
           }
 
-          // Augment req object to match VercelRequest interface
+          // Augment req and res objects to match VercelRequest and VercelResponse interfaces
           const vercelReq = Object.assign(req, {
             query,
             body,
             cookies: {},
           });
 
+          const vercelRes = res as any;
+          if (typeof vercelRes.status !== 'function') {
+            vercelRes.status = function (statusCode: number) {
+              this.statusCode = statusCode;
+              return this;
+            };
+          }
+          if (typeof vercelRes.json !== 'function') {
+            vercelRes.json = function (data: any) {
+              if (!this.getHeader('Content-Type')) {
+                this.setHeader('Content-Type', 'application/json');
+              }
+              this.end(JSON.stringify(data));
+              return this;
+            };
+          }
+
           // Load module
           const handlerModule = await server.ssrLoadModule(modulePath);
           const handler = handlerModule.default;
 
           if (typeof handler === 'function') {
-            await handler(vercelReq, res);
+            await handler(vercelReq, vercelRes);
           } else {
             next();
           }

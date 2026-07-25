@@ -97,7 +97,7 @@ export const AnalyticsView: React.FC = () => {
                     cy="50%"
                     outerRadius={80}
                     dataKey="percentage"
-                    label={({ name, percentage }) => `${name} ${percentage}%`}
+                    label={(entry: any) => `${entry.name} ${entry.percentage}%`}
                   >
                     {data.categoryShare.map((entry: any, index: number) => (
                       <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />

@@ -25,7 +25,8 @@ import {
 import { useBroadcast } from '../context/BroadcastContext';
 
 export const SupabaseIntegrationView: React.FC = () => {
-  const { news } = useBroadcast();
+  const { newsList } = useBroadcast();
+  const news = newsList || [];
   const [supabaseUrl, setSupabaseUrl] = useState('');
   const [supabaseKey, setSupabaseKey] = useState('');
   const [connStatus, setConnStatus] = useState<{ connected: boolean; message: string } | null>(null);
