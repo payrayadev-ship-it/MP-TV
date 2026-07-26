@@ -5,12 +5,12 @@ import { useBroadcast } from '../context/BroadcastContext';
 export const AiPresenterView: React.FC = () => {
   const { newsList, aiTasks, generateAiPresenter, playlists } = useBroadcast();
 
-  const [selectedNewsId, setSelectedNewsId] = useState<string>(newsList[0]?.id || '');
+  const [selectedNewsId, setSelectedNewsId] = useState<string>(newsList?.[0]?.id || '');
   const [voiceGender, setVoiceGender] = useState<'female' | 'male'>('female');
-  const [selectedPlaylistId, setSelectedPlaylistId] = useState<string>(playlists[0]?.id || 'pl-1');
+  const [selectedPlaylistId, setSelectedPlaylistId] = useState<string>(playlists?.[0]?.id || 'pl-1');
   const [isGenerating, setIsGenerating] = useState(false);
 
-  const selectedNews = newsList.find((n) => n.id === selectedNewsId) || newsList[0];
+  const selectedNews = newsList?.find((n) => n.id === selectedNewsId) || newsList?.[0];
 
   const handleStartGenerate = async () => {
     if (!selectedNews) return;
@@ -58,7 +58,7 @@ export const AiPresenterView: React.FC = () => {
                 onChange={(e) => setSelectedNewsId(e.target.value)}
                 className="w-full bg-zinc-900 border border-zinc-800 p-2.5 rounded text-white font-bold focus:outline-none focus:border-purple-500"
               >
-                {newsList.map((n) => (
+                {(newsList || []).map((n) => (
                   <option key={n.id} value={n.id}>
                     [{n.category}] {n.title}
                   </option>
@@ -95,7 +95,7 @@ export const AiPresenterView: React.FC = () => {
                   onChange={(e) => setSelectedPlaylistId(e.target.value)}
                   className="w-full bg-zinc-900 border border-zinc-800 p-2.5 rounded text-white focus:outline-none"
                 >
-                  {playlists.map((p) => (
+                  {(playlists || []).map((p) => (
                     <option key={p.id} value={p.id}>
                       {p.name}
                     </option>
@@ -127,7 +127,7 @@ export const AiPresenterView: React.FC = () => {
             </h3>
 
             <div className="space-y-3">
-              {aiTasks.map((task) => (
+              {(aiTasks || []).map((task) => (
                 <div key={task.id} className="bg-zinc-900 p-3 rounded-lg border border-zinc-800 space-y-2 text-xs">
                   <div className="flex justify-between items-start">
                     <h4 className="font-bold text-white line-clamp-1">{task.newsTitle}</h4>

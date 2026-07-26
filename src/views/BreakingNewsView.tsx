@@ -178,7 +178,7 @@ export const BreakingNewsView: React.FC = () => {
             </h3>
 
             <div className="space-y-2 max-h-48 overflow-y-auto custom-scrollbar">
-              {breakingNewsList.map((bn) => (
+              {(breakingNewsList || []).map((bn) => (
                 <div key={bn.id} className="p-2.5 bg-zinc-900 rounded-lg border border-zinc-800 text-xs space-y-1">
                   <div className="flex justify-between items-center">
                     <span className="font-bold text-red-400">{bn.title}</span>

@@ -63,7 +63,7 @@ export const AdvertisementView: React.FC = () => {
 
       {/* Ads Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-        {ads.map((ad) => {
+        {(ads || []).map((ad) => {
           const progressPct = Math.min(100, Math.round((ad.impressionsCount / ad.targetImpressions) * 100));
 
           return (

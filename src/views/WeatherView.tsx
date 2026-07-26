@@ -30,7 +30,7 @@ export const WeatherView: React.FC = () => {
 
       {/* Regions Weather Grid */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-        {weatherList.map((w) => (
+        {(weatherList || []).map((w) => (
           <div
             key={w.region}
             className="bg-zinc-950 border border-zinc-800 rounded-xl p-4 space-y-3 hover:border-zinc-700 transition relative overflow-hidden"

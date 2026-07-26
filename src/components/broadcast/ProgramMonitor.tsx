@@ -6,7 +6,7 @@ export const ProgramMonitor: React.FC = () => {
   const { dashboard, obsSettings, runningTexts } = useBroadcast();
   const videoRef = useRef<HTMLVideoElement>(null);
 
-  const activeRunningText = runningTexts.find((rt) => rt.active) || runningTexts[0];
+  const activeRunningText = runningTexts?.find((rt) => rt.active) || runningTexts?.[0];
   const isBreaking = dashboard?.activeBreakingNews;
 
   useEffect(() => {

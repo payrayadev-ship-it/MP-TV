@@ -21,7 +21,7 @@ export const playlistService = {
   },
 
   update(data: Partial<Playlist> & { id: string }): Playlist {
-    const existing = playlistRepository.getAll().find((p) => p.id === data.id);
+    const existing = (playlistRepository.getAll() || []).find((p) => p.id === data.id);
     if (!existing) {
       throw new Error('Playlist tidak ditemukan');
     }

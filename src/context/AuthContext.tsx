@@ -21,10 +21,10 @@ const roleHierarchy: Record<UserRole, number> = {
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [users] = useState<User[]>(initialUsers);
-  const [currentUser, setCurrentUser] = useState<User>(initialUsers[0]); // Default Super Admin
+  const [currentUser, setCurrentUser] = useState<User>((initialUsers || [])[0]); // Default Super Admin
 
   const switchRole = (role: UserRole) => {
-    const found = users.find((u) => u.role === role);
+    const found = (users || []).find((u) => u.role === role);
     if (found) {
       setCurrentUser(found);
     } else {

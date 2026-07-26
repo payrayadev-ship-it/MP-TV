@@ -3,16 +3,19 @@ import { Playlist } from '../types';
 
 export const playlistRepository = {
   getAll(): Playlist[] {
-    return getState().playlists;
+    return getState().playlists || [];
   },
 
   create(playlist: Playlist): Playlist {
-    getState().playlists.push(playlist);
+    const store = getState();
+    store.playlists = store.playlists || [];
+    store.playlists.push(playlist);
     return playlist;
   },
 
   update(playlist: Playlist): Playlist {
     const store = getState();
+    store.playlists = store.playlists || [];
     const index = store.playlists.findIndex((p) => p.id === playlist.id);
     if (index !== -1) {
       if (playlist.active) {
@@ -26,6 +29,7 @@ export const playlistRepository = {
 
   delete(id: string): boolean {
     const store = getState();
+    store.playlists = store.playlists || [];
     const initialLen = store.playlists.length;
     store.playlists = store.playlists.filter((p) => p.id !== id);
     return store.playlists.length < initialLen;

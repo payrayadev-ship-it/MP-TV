@@ -50,7 +50,7 @@ export const SceneManagerView: React.FC = () => {
 
       {/* Scenes Grid */}
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-        {scenes.map((scene) => {
+        {(scenes || []).map((scene) => {
           const isProgram = scene.name === obsSettings?.currentScene;
           return (
             <div
@@ -89,7 +89,7 @@ export const SceneManagerView: React.FC = () => {
                 <div className="p-3 space-y-1">
                   <h3 className="font-bold text-sm text-white truncate">{scene.name}</h3>
                   <p className="text-[11px] text-zinc-400 font-mono">
-                    {scene.sources.length} Total Sources Connected
+                    {scene.sources?.length || 0} Total Sources Connected
                   </p>
                 </div>
               </div>

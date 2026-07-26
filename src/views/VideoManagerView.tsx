@@ -19,8 +19,10 @@ export const VideoManagerView: React.FC = () => {
   const [durationSeconds, setDurationSeconds] = useState(180);
   const [videoUrl, setVideoUrl] = useState('https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4');
 
-  const filteredVideos = videos.filter((v) => {
-    const matchesSearch = v.title.toLowerCase().includes(searchQuery.toLowerCase()) || v.tags.some((t) => t.toLowerCase().includes(searchQuery.toLowerCase()));
+  const filteredVideos = (videos || []).filter((v) => {
+    const matchesSearch =
+      v.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      (v.tags || []).some((t) => t.toLowerCase().includes(searchQuery.toLowerCase()));
     const matchesCat = selectedCategory === 'All' || v.category === selectedCategory;
     return matchesSearch && matchesCat;
   });
@@ -133,7 +135,7 @@ export const VideoManagerView: React.FC = () => {
                 <p className="text-[10px] text-zinc-400 line-clamp-2">{vid.description}</p>
 
                 <div className="flex flex-wrap gap-1 pt-1">
-                  {vid.tags.map((t, idx) => (
+                  {(vid.tags || []).map((t, idx) => (
                     <span key={idx} className="bg-zinc-900 border border-zinc-800 px-1.5 py-0.2 rounded text-[9px] text-zinc-400 font-mono">
                       #{t}
                     </span>

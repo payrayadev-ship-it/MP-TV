@@ -18,6 +18,7 @@ import {
   Settings,
   Database,
   ChevronRight,
+  Tv,
 } from 'lucide-react';
 import { useBroadcast } from '../../context/BroadcastContext';
 
@@ -34,6 +35,7 @@ export const menuItems = [
   { id: 'playlist', label: 'Playlist', icon: ListMusic },
   { id: 'videomanager', label: 'Video Manager', icon: Film },
   { id: 'schedule', label: 'Schedule', icon: Calendar },
+  { id: 'epg', label: 'EPG Guide', icon: Tv },
   { id: 'breakingnews', label: 'Breaking News', icon: Zap },
   { id: 'runningtext', label: 'Running Text', icon: AlignLeft },
   { id: 'advertisement', label: 'Advertisement', icon: Megaphone },

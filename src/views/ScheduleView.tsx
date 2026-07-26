@@ -9,8 +9,8 @@ export const ScheduleView: React.FC = () => {
 
   // Form State
   const [programTitle, setProgramTitle] = useState('');
-  const [playlistId, setPlaylistId] = useState(playlists[0]?.id || 'pl-1');
-  const [obsSceneId, setObsSceneId] = useState(scenes[0]?.id || 'sc-1');
+  const [playlistId, setPlaylistId] = useState(playlists?.[0]?.id || 'pl-1');
+  const [obsSceneId, setObsSceneId] = useState(scenes?.[0]?.id || 'sc-1');
   const [date, setDate] = useState('2026-07-25');
   const [startTime, setStartTime] = useState('14:00');
   const [endTime, setEndTime] = useState('15:30');
@@ -70,9 +70,9 @@ export const ScheduleView: React.FC = () => {
         </div>
 
         <div className="divide-y divide-zinc-800">
-          {schedules.map((sch) => {
-            const matchedPlaylist = playlists.find((p) => p.id === sch.playlistId);
-            const matchedScene = scenes.find((s) => s.id === sch.obsSceneId || s.name === sch.obsSceneId);
+          {(schedules || []).map((sch) => {
+            const matchedPlaylist = (playlists || []).find((p) => p.id === sch.playlistId);
+            const matchedScene = (scenes || []).find((s) => s.id === sch.obsSceneId || s.name === sch.obsSceneId);
 
             return (
               <div
@@ -146,7 +146,7 @@ export const ScheduleView: React.FC = () => {
                     onChange={(e) => setPlaylistId(e.target.value)}
                     className="w-full bg-zinc-900 border border-zinc-800 p-2.5 rounded text-white focus:outline-none"
                   >
-                    {playlists.map((p) => (
+                    {(playlists || []).map((p) => (
                       <option key={p.id} value={p.id}>
                         {p.name}
                       </option>
@@ -161,7 +161,7 @@ export const ScheduleView: React.FC = () => {
                     onChange={(e) => setObsSceneId(e.target.value)}
                     className="w-full bg-zinc-900 border border-zinc-800 p-2.5 rounded text-white focus:outline-none"
                   >
-                    {scenes.map((s) => (
+                    {(scenes || []).map((s) => (
                       <option key={s.id} value={s.name}>
                         {s.name}
                       </option>

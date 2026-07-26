@@ -82,11 +82,11 @@ export const getState = (): StateStore => globalStore;
 
 export const getDashboardData = () => {
   const store = getState();
-  const activePl = store.playlists.find((p) => p.id === store.activePlaylistId) || store.playlists[0];
-  const currentItem = activePl?.items[store.activeVideoIndex];
-  const currentVid = store.videos.find((v) => v.id === currentItem?.videoId) || store.videos[0];
-  const activeBreaking = store.breakingNews.find((bn) => bn.active) || null;
-  const activeRunningText = store.runningTexts.find((rt) => rt.active) || store.runningTexts[0];
+  const activePl = store.playlists?.find((p) => p.id === store.activePlaylistId) || store.playlists?.[0];
+  const currentItem = activePl?.items?.[store.activeVideoIndex];
+  const currentVid = store.videos?.find((v) => v.id === currentItem?.videoId) || store.videos?.[0];
+  const activeBreaking = store.breakingNews?.find((bn) => bn.active) || null;
+  const activeRunningText = store.runningTexts?.find((rt) => rt.active) || store.runningTexts?.[0];
 
   return {
     obsStatus: store.obsSettings,

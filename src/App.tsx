@@ -14,6 +14,7 @@ import { SceneManagerView } from './views/SceneManagerView';
 import { PlaylistView } from './views/PlaylistView';
 import { VideoManagerView } from './views/VideoManagerView';
 import { ScheduleView } from './views/ScheduleView';
+import { EpgView } from './views/EpgView';
 import { BreakingNewsView } from './views/BreakingNewsView';
 import { RunningTextView } from './views/RunningTextView';
 import { AdvertisementView } from './views/AdvertisementView';
@@ -45,6 +46,8 @@ function AppContent() {
         return <VideoManagerView />;
       case 'schedule':
         return <ScheduleView />;
+      case 'epg':
+        return <EpgView />;
       case 'breakingnews':
         return <BreakingNewsView />;
       case 'runningtext':

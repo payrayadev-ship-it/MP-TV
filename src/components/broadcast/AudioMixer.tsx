@@ -4,17 +4,17 @@ import { useBroadcast } from '../../context/BroadcastContext';
 
 export const AudioMixer: React.FC = () => {
   const { audioChannels } = useBroadcast();
-  const [channels, setChannels] = useState(audioChannels);
+  const [channels, setChannels] = useState(audioChannels || []);
 
   const handleVolumeChange = (id: string, vol: number) => {
     setChannels((prev) =>
-      prev.map((c) => (c.id === id ? { ...c, volume: vol } : c))
+      (prev || []).map((c) => (c.id === id ? { ...c, volume: vol } : c))
     );
   };
 
   const handleMuteToggle = (id: string) => {
     setChannels((prev) =>
-      prev.map((c) => (c.id === id ? { ...c, muted: !c.muted } : c))
+      (prev || []).map((c) => (c.id === id ? { ...c, muted: !c.muted } : c))
     );
   };
 
@@ -32,7 +32,7 @@ export const AudioMixer: React.FC = () => {
 
       {/* Audio Channels Grid */}
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-5 gap-3">
-        {channels.map((ch) => (
+        {(channels || []).map((ch) => (
           <div
             key={ch.id}
             className={`p-2.5 rounded-lg border transition-colors flex flex-col justify-between ${

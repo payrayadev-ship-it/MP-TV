@@ -1,5 +1,4 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
-import { io, Socket } from 'socket.io-client';
 import {
   DashboardStatus,
   ObsSettings,
@@ -51,8 +50,7 @@ interface BroadcastContextType {
 const BroadcastContext = createContext<BroadcastContextType | undefined>(undefined);
 
 export const BroadcastProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [socket, setSocket] = useState<Socket | null>(null);
-  const [isConnected, setIsConnected] = useState(false);
+  const [isConnected, setIsConnected] = useState(true);
 
   const [dashboard, setDashboard] = useState<DashboardStatus | null>(null);
   const [obsSettings, setObsSettings] = useState<ObsSettings | null>(null);
@@ -134,55 +132,15 @@ export const BroadcastProvider: React.FC<{ children: React.ReactNode }> = ({ chi
   };
 
   useEffect(() => {
-    refreshData();
+    refreshData().then(() => setIsConnected(true)).catch(() => setIsConnected(false));
 
     // Auto-refresh interval for Vercel Serverless environment
     const interval = setInterval(() => {
-      refreshData();
+      refreshData().then(() => setIsConnected(true)).catch(() => setIsConnected(false));
     }, 5000);
-
-    // Optional Socket.IO init with silent failure fallback
-    let s: Socket | null = null;
-    try {
-      s = io({ autoConnect: false, reconnectionAttempts: 2, timeout: 3000 });
-      setSocket(s);
-
-      s.on('connect', () => setIsConnected(true));
-      s.on('disconnect', () => setIsConnected(false));
-
-      s.on('dashboard_update', (data: DashboardStatus) => {
-        setDashboard(data);
-        if (data.obsStatus) setObsSettings(data.obsStatus);
-        if (data.youtubeStatus) setYoutubeStatus(data.youtubeStatus);
-      });
-
-      s.on('scene_changed', ({ currentScene, scenes }: { currentScene: string; scenes: ObsScene[] }) => {
-        setObsSettings((prev) => (prev ? { ...prev, currentScene } : null));
-        if (scenes) setScenes(scenes);
-      });
-
-      s.on('breaking_news_triggered', ({ currentScene }: any) => {
-        setObsSettings((prev) => (prev ? { ...prev, currentScene } : null));
-        refreshData();
-      });
-
-      s.on('breaking_news_ended', ({ currentScene }: any) => {
-        setObsSettings((prev) => (prev ? { ...prev, currentScene } : null));
-        refreshData();
-      });
-
-      s.on('ai_presenter_completed', () => {
-        refreshData();
-      });
-
-      s.connect();
-    } catch {
-      setIsConnected(false);
-    }
 
     return () => {
       clearInterval(interval);
-      if (s) s.disconnect();
     };
   }, []);
 

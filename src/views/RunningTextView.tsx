@@ -34,8 +34,9 @@ export const RunningTextView: React.FC = () => {
   };
 
   const handleSyncFromLatestNews = async () => {
-    if (newsList.length === 0) return;
+    if (!newsList || newsList.length === 0) return;
     const latest = newsList[0];
+    if (!latest) return;
     const newTickerText = `BERITA TERBARU: ${latest.title} — ${latest.content.substring(0, 100)}...`;
 
     await addRunningText({
@@ -198,7 +199,7 @@ export const RunningTextView: React.FC = () => {
             </h3>
 
             <div className="space-y-2">
-              {runningTexts.map((rt) => (
+              {(runningTexts || []).map((rt) => (
                 <div key={rt.id} className="p-3 bg-zinc-900 rounded-lg border border-zinc-800 text-xs space-y-1">
                   <div className="flex justify-between items-center font-bold">
                     <span className="text-white">{rt.category}</span>

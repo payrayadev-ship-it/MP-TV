@@ -3,11 +3,12 @@ import { Playlist } from '../../types';
 
 export const playlistService = {
   getAll() {
-    return getState().playlists;
+    return getState().playlists || [];
   },
 
   create(name?: string, category?: any) {
     const store = getState();
+    store.playlists = store.playlists || [];
     const newPl: Playlist = {
       id: `pl-${Date.now()}`,
       name: name || 'Playlist Baru Majalengka',
@@ -24,6 +25,7 @@ export const playlistService = {
 
   update(data: Partial<Playlist> & { id: string }) {
     const store = getState();
+    store.playlists = store.playlists || [];
     const index = store.playlists.findIndex((p) => p.id === data.id);
     if (index === -1) {
       throw new Error('Playlist tidak ditemukan');
@@ -43,6 +45,7 @@ export const playlistService = {
 
   delete(id: string) {
     const store = getState();
+    store.playlists = store.playlists || [];
     store.playlists = store.playlists.filter((p) => p.id !== id);
     return { message: 'Playlist berhasil dihapus' };
   },

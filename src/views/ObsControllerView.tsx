@@ -112,13 +112,13 @@ export const ObsControllerView: React.FC = () => {
           <div className="flex items-center justify-between pb-2 border-b border-zinc-800">
             <h3 className="text-xs font-bold uppercase text-zinc-300 flex items-center space-x-1.5">
               <Layers className="w-4 h-4 text-[#D50000]" />
-              <span>Daftar Scene OBS ({scenes.length})</span>
+              <span>Daftar Scene OBS ({scenes?.length || 0})</span>
             </h3>
             <span className="text-[10px] text-zinc-500">Klik untuk langsung Pindah</span>
           </div>
 
           <div className="space-y-2">
-            {scenes.map((sc) => {
+            {scenes?.map((sc) => {
               const isCurrent = sc.name === obsSettings?.currentScene;
               return (
                 <button
@@ -139,7 +139,7 @@ export const ObsControllerView: React.FC = () => {
                     <div>
                       <p className="font-bold">{sc.name}</p>
                       <p className="text-[10px] font-mono text-zinc-400">
-                        {sc.sources.length} Sources Connected
+                        {sc.sources?.length || 0} Sources Connected
                       </p>
                     </div>
                   </div>
@@ -211,9 +211,9 @@ export const ObsControllerView: React.FC = () => {
                 <span>Type</span>
                 <span>Status</span>
               </div>
-              {scenes
+              {(scenes || [])
                 .find((s) => s.name === obsSettings?.currentScene)
-                ?.sources.map((src) => (
+                ?.sources?.map((src) => (
                   <div key={src.id} className="flex justify-between items-center py-1 border-b border-zinc-900">
                     <span className="text-white font-bold">{src.name}</span>
                     <span className="text-zinc-400 uppercase">{src.type}</span>

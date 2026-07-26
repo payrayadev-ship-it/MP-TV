@@ -77,7 +77,7 @@ export const UsersView: React.FC = () => {
             </tr>
           </thead>
           <tbody className="divide-y divide-zinc-800/60">
-            {users.map((u) => (
+            {(users || []).map((u) => (
               <tr key={u.id} className="hover:bg-zinc-900/40 transition">
                 <td className="p-3 font-bold text-white flex items-center space-x-3">
                   <img

@@ -114,14 +114,14 @@ export const YouTubeLiveView: React.FC = () => {
             <div className="flex items-center justify-between pb-3 border-b border-zinc-800 mb-3">
               <h3 className="text-xs font-bold uppercase text-zinc-300 flex items-center space-x-1.5">
                 <MessageSquare className="w-4 h-4 text-red-500" />
-                <span>Live Chat Youtube ({youtubeStatus?.chatMessages.length})</span>
+                <span>Live Chat Youtube ({youtubeStatus?.chatMessages?.length || 0})</span>
               </h3>
               <span className="text-[10px] text-emerald-400 font-mono">Mod Mode Active</span>
             </div>
 
             {/* Messages Scroll Area */}
             <div className="space-y-2.5 overflow-y-auto max-h-[350px] pr-1 custom-scrollbar">
-              {youtubeStatus?.chatMessages.map((msg) => (
+              {youtubeStatus?.chatMessages?.map((msg) => (
                 <div key={msg.id} className="text-xs space-y-0.5 bg-zinc-900/60 p-2 rounded border border-zinc-800/80">
                   <div className="flex items-center justify-between">
                     <span

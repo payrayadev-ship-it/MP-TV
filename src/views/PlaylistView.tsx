@@ -34,13 +34,13 @@ export const categories: VideoCategory[] = [
 
 export const PlaylistView: React.FC = () => {
   const { playlists, videos, refreshData } = useBroadcast();
-  const [selectedPlaylistId, setSelectedPlaylistId] = useState<string>(playlists[0]?.id || 'pl-1');
+  const [selectedPlaylistId, setSelectedPlaylistId] = useState<string>(playlists?.[0]?.id || 'pl-1');
   const [selectedCategoryFilter, setSelectedCategoryFilter] = useState<string>('All');
   const [showAddModal, setShowAddModal] = useState(false);
   const [newPlaylistName, setNewPlaylistName] = useState('');
   const [newPlaylistCategory, setNewPlaylistCategory] = useState<VideoCategory>('Berita');
 
-  const selectedPlaylist = playlists.find((p) => p.id === selectedPlaylistId) || playlists[0];
+  const selectedPlaylist = (playlists || []).find((p) => p.id === selectedPlaylistId) || playlists?.[0];
 
   const handleActivatePlaylist = async (id: string) => {
     await fetch('/api/playlist', {
@@ -92,12 +92,12 @@ export const PlaylistView: React.FC = () => {
   const handleAddVideoToPlaylist = async (videoId: string) => {
     if (!selectedPlaylist) return;
     const newItems = [
-      ...selectedPlaylist.items,
+      ...(selectedPlaylist.items || []),
       {
         id: `pli-${Date.now()}`,
         playlistId: selectedPlaylist.id,
         videoId,
-        order: selectedPlaylist.items.length + 1,
+        order: (selectedPlaylist.items?.length || 0) + 1,
         autoNext: true,
       },
     ];
@@ -179,7 +179,7 @@ export const PlaylistView: React.FC = () => {
           </h3>
 
           <div className="space-y-2">
-            {playlists.map((pl) => {
+            {(playlists || []).map((pl) => {
               const isSelected = pl.id === selectedPlaylistId;
               return (
                 <div
@@ -201,7 +201,7 @@ export const PlaylistView: React.FC = () => {
                       )}
                     </div>
                     <p className="text-[10px] text-zinc-400 font-mono mt-0.5">
-                      Kategori: {pl.category} • {pl.items.length} Video
+                      Kategori: {pl.category} • {pl.items?.length || 0} Video
                     </p>
                   </div>
 
@@ -231,7 +231,7 @@ export const PlaylistView: React.FC = () => {
                 <div>
                   <h2 className="text-base font-extrabold text-white">{selectedPlaylist.name}</h2>
                   <p className="text-xs text-zinc-400 font-mono">
-                    Kategori: {selectedPlaylist.category} • {selectedPlaylist.items.length} Item
+                    Kategori: {selectedPlaylist.category} • {selectedPlaylist.items?.length || 0} Item
                   </p>
                 </div>
 
@@ -265,11 +265,11 @@ export const PlaylistView: React.FC = () => {
               {/* Items List */}
               <div className="space-y-2">
                 <h3 className="text-xs font-bold text-zinc-400 uppercase tracking-wider">
-                  Urutan Pemutaran Video ({selectedPlaylist.items.length})
+                  Urutan Pemutaran Video ({selectedPlaylist.items?.length || 0})
                 </h3>
 
-                {selectedPlaylist.items.map((item, idx) => {
-                  const videoData = videos.find((v) => v.id === item.videoId) || videos[0];
+                {selectedPlaylist.items?.map((item, idx) => {
+                  const videoData = (videos || []).find((v) => v.id === item.videoId) || videos?.[0];
                   return (
                     <div
                       key={item.id}
@@ -308,7 +308,7 @@ export const PlaylistView: React.FC = () => {
                   Tambahkan Video dari Media Library
                 </h3>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                  {videos.map((vid) => (
+                  {(videos || []).map((vid) => (
                     <div
                       key={vid.id}
                       className="flex items-center justify-between bg-zinc-900/60 border border-zinc-800 p-2 rounded text-xs"

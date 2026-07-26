@@ -10,11 +10,8 @@ import {
   Layers,
   ListMusic,
   Film,
-  Megaphone,
-  AlignLeft,
-  AlertTriangle,
-  Play,
   Zap,
+  Server,
 } from 'lucide-react';
 import { useBroadcast } from '../context/BroadcastContext';
 import { ProgramMonitor } from '../components/broadcast/ProgramMonitor';
@@ -22,7 +19,11 @@ import { PreviewMonitor } from '../components/broadcast/PreviewMonitor';
 import { AudioMixer } from '../components/broadcast/AudioMixer';
 
 export const DashboardView: React.FC = () => {
-  const { dashboard, obsSettings, publishBreakingNews } = useBroadcast();
+  const { dashboard, obsSettings, youtubeStatus, isConnected, publishBreakingNews } = useBroadcast();
+
+  const isObsConnected = obsSettings?.connected ?? false;
+  const isYoutubeLive = youtubeStatus?.isLive ?? dashboard?.youtubeStatus?.isLive ?? false;
+  const isFileServerConnected = isConnected ?? true;
 
   const handleQuickBreaking = () => {
     publishBreakingNews({
@@ -36,8 +37,8 @@ export const DashboardView: React.FC = () => {
 
   return (
     <div className="space-y-4 p-4 max-w-[1700px] mx-auto text-white">
-      {/* Top Banner & Quick Controls */}
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center bg-[#141414] border border-white/10 p-3.5 rounded-lg gap-4">
+      {/* Top Banner & Real-time Connection Status Indicators */}
+      <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center bg-[#141414] border border-white/10 p-3.5 rounded-lg gap-4">
         <div>
           <div className="flex items-center gap-2">
             <h1 className="text-sm md:text-base font-extrabold uppercase tracking-widest text-white">
@@ -52,13 +53,65 @@ export const DashboardView: React.FC = () => {
           </p>
         </div>
 
-        <div className="flex items-center gap-3">
+        {/* Real-time Connection Status Badges */}
+        <div className="flex flex-wrap items-center gap-2 bg-black/50 p-2 rounded-lg border border-white/10">
+          {/* OBS Status */}
+          <div className="flex items-center gap-2 bg-zinc-900/90 px-3 py-1.5 rounded border border-white/10">
+            <span
+              className={`w-2.5 h-2.5 rounded-full ${
+                isObsConnected
+                  ? 'bg-emerald-400 shadow-[0_0_8px_rgba(52,211,153,0.8)] animate-pulse'
+                  : 'bg-red-500 shadow-[0_0_8px_rgba(239,68,68,0.8)]'
+              }`}
+            />
+            <div className="flex flex-col">
+              <span className="text-[10px] font-bold text-zinc-400 uppercase tracking-wider leading-none">OBS Studio</span>
+              <span className={`text-[11px] font-extrabold leading-tight ${isObsConnected ? 'text-emerald-400' : 'text-red-400'}`}>
+                {isObsConnected ? 'Connected' : 'Disconnected'}
+              </span>
+            </div>
+          </div>
+
+          {/* YouTube Live Status */}
+          <div className="flex items-center gap-2 bg-zinc-900/90 px-3 py-1.5 rounded border border-white/10">
+            <span
+              className={`w-2.5 h-2.5 rounded-full ${
+                isYoutubeLive
+                  ? 'bg-emerald-400 shadow-[0_0_8px_rgba(52,211,153,0.8)] animate-pulse'
+                  : 'bg-red-500 shadow-[0_0_8px_rgba(239,68,68,0.8)]'
+              }`}
+            />
+            <div className="flex flex-col">
+              <span className="text-[10px] font-bold text-zinc-400 uppercase tracking-wider leading-none">YouTube Live</span>
+              <span className={`text-[11px] font-extrabold leading-tight ${isYoutubeLive ? 'text-emerald-400' : 'text-red-400'}`}>
+                {isYoutubeLive ? 'Live On Air' : 'Off Air'}
+              </span>
+            </div>
+          </div>
+
+          {/* Local File Server Status */}
+          <div className="flex items-center gap-2 bg-zinc-900/90 px-3 py-1.5 rounded border border-white/10">
+            <span
+              className={`w-2.5 h-2.5 rounded-full ${
+                isFileServerConnected
+                  ? 'bg-emerald-400 shadow-[0_0_8px_rgba(52,211,153,0.8)] animate-pulse'
+                  : 'bg-red-500 shadow-[0_0_8px_rgba(239,68,68,0.8)]'
+              }`}
+            />
+            <div className="flex flex-col">
+              <span className="text-[10px] font-bold text-zinc-400 uppercase tracking-wider leading-none">File Server</span>
+              <span className={`text-[11px] font-extrabold leading-tight ${isFileServerConnected ? 'text-emerald-400' : 'text-red-400'}`}>
+                {isFileServerConnected ? 'Online (Port 3000)' : 'Offline'}
+              </span>
+            </div>
+          </div>
+
           <button
             onClick={handleQuickBreaking}
-            className="flex items-center gap-2 bg-[#D50000] hover:bg-red-700 text-white font-extrabold px-3.5 py-1.5 rounded text-xs shadow-lg shadow-red-950/50 transition active:scale-95"
+            className="flex items-center gap-2 bg-[#D50000] hover:bg-red-700 text-white font-extrabold px-3 py-2 rounded text-xs shadow-lg shadow-red-950/50 transition active:scale-95 ml-1"
           >
             <Zap className="w-3.5 h-3.5 fill-current animate-bounce" />
-            <span>TRIGGER BREAKING NEWS OVERLAY</span>
+            <span>TRIGGER BREAKING OVERLAY</span>
           </button>
         </div>
       </div>
@@ -78,42 +131,74 @@ export const DashboardView: React.FC = () => {
         {/* OBS Status */}
         <div className="bg-[#141414] border border-white/5 p-3 rounded-lg">
           <div className="flex justify-between items-center text-white/40 text-[10px] font-bold uppercase tracking-wider">
-            <span>OBS Status</span>
-            <Tv className="w-3.5 h-3.5 text-[#D50000]" />
+            <span>OBS Studio</span>
+            <Tv className={`w-3.5 h-3.5 ${isObsConnected ? 'text-emerald-400' : 'text-[#D50000]'}`} />
           </div>
           <div className="text-xs font-bold text-white mt-1.5 flex items-center gap-1.5">
             <span
-              className={`w-2 h-2 rounded-full ${
-                obsSettings?.connected ? 'bg-emerald-400 animate-pulse' : 'bg-red-500'
+              className={`w-2.5 h-2.5 rounded-full ${
+                isObsConnected
+                  ? 'bg-emerald-400 shadow-[0_0_8px_rgba(52,211,153,0.8)] animate-pulse'
+                  : 'bg-red-500 shadow-[0_0_8px_rgba(239,68,68,0.8)]'
               }`}
             />
-            <span className="truncate">{obsSettings?.connected ? 'Connected' : 'Disconnected'}</span>
+            <span className={`truncate font-extrabold ${isObsConnected ? 'text-emerald-400' : 'text-red-400'}`}>
+              {isObsConnected ? 'Connected' : 'Disconnected'}
+            </span>
           </div>
+          <div className="text-[9px] text-zinc-500 font-mono mt-1">WS Port 4455</div>
         </div>
 
         {/* YouTube Status */}
         <div className="bg-[#141414] border border-white/5 p-3 rounded-lg">
           <div className="flex justify-between items-center text-white/40 text-[10px] font-bold uppercase tracking-wider">
             <span>YouTube Live</span>
-            <Radio className="w-3.5 h-3.5 text-red-500" />
+            <Radio className={`w-3.5 h-3.5 ${isYoutubeLive ? 'text-emerald-400' : 'text-red-500'}`} />
           </div>
           <div className="text-xs font-bold text-white mt-1.5 flex items-center gap-1.5">
             <span
-              className={`w-2 h-2 rounded-full ${
-                dashboard?.youtubeStatus.isLive ? 'bg-red-500 animate-ping' : 'bg-zinc-600'
+              className={`w-2.5 h-2.5 rounded-full ${
+                isYoutubeLive
+                  ? 'bg-emerald-400 shadow-[0_0_8px_rgba(52,211,153,0.8)] animate-pulse'
+                  : 'bg-red-500 shadow-[0_0_8px_rgba(239,68,68,0.8)]'
               }`}
             />
-            <span>{dashboard?.youtubeStatus.isLive ? 'LIVE ON AIR' : 'OFF AIR'}</span>
+            <span className={`truncate font-extrabold ${isYoutubeLive ? 'text-emerald-400' : 'text-red-400'}`}>
+              {isYoutubeLive ? 'Live On Air' : 'Off Air'}
+            </span>
           </div>
+          <div className="text-[9px] text-zinc-500 font-mono mt-1">RTMPS Primary Node</div>
         </div>
 
-        {/* Internet Status */}
+        {/* Local File Server Status */}
+        <div className="bg-[#141414] border border-white/5 p-3 rounded-lg">
+          <div className="flex justify-between items-center text-white/40 text-[10px] font-bold uppercase tracking-wider">
+            <span>File Server</span>
+            <Server className={`w-3.5 h-3.5 ${isFileServerConnected ? 'text-emerald-400' : 'text-red-500'}`} />
+          </div>
+          <div className="text-xs font-bold text-white mt-1.5 flex items-center gap-1.5">
+            <span
+              className={`w-2.5 h-2.5 rounded-full ${
+                isFileServerConnected
+                  ? 'bg-emerald-400 shadow-[0_0_8px_rgba(52,211,153,0.8)] animate-pulse'
+                  : 'bg-red-500 shadow-[0_0_8px_rgba(239,68,68,0.8)]'
+              }`}
+            />
+            <span className={`truncate font-extrabold ${isFileServerConnected ? 'text-emerald-400' : 'text-red-400'}`}>
+              {isFileServerConnected ? 'Online' : 'Offline'}
+            </span>
+          </div>
+          <div className="text-[9px] text-zinc-500 font-mono mt-1">Local Host (Port 3000)</div>
+        </div>
+
+        {/* Network */}
         <div className="bg-[#141414] border border-white/5 p-3 rounded-lg">
           <div className="flex justify-between items-center text-white/40 text-[10px] font-bold uppercase tracking-wider">
             <span>Network</span>
             <Wifi className="w-3.5 h-3.5 text-emerald-400" />
           </div>
           <div className="text-xs font-bold text-emerald-400 mt-1.5 font-mono">1 Gbps Dedicated</div>
+          <div className="text-[9px] text-zinc-500 font-mono mt-1">Latency: 12ms</div>
         </div>
 
         {/* CPU */}
@@ -123,8 +208,9 @@ export const DashboardView: React.FC = () => {
             <Cpu className="w-3.5 h-3.5 text-cyan-400" />
           </div>
           <div className="text-xs font-bold text-white mt-1.5 font-mono">
-            {dashboard?.systemMetrics.cpuPct}%
+            {dashboard?.systemMetrics?.cpuPct ?? 0}%
           </div>
+          <div className="text-[9px] text-zinc-500 font-mono mt-1">8 Cores Active</div>
         </div>
 
         {/* RAM */}
@@ -134,28 +220,19 @@ export const DashboardView: React.FC = () => {
             <Activity className="w-3.5 h-3.5 text-amber-400" />
           </div>
           <div className="text-xs font-bold text-white mt-1.5 font-mono">
-            {dashboard?.systemMetrics.ramPct}%
+            {dashboard?.systemMetrics?.ramPct ?? 0}%
           </div>
+          <div className="text-[9px] text-zinc-500 font-mono mt-1">16 GB Total</div>
         </div>
 
-        {/* Disk */}
+        {/* Disk Storage */}
         <div className="bg-[#141414] border border-white/5 p-3 rounded-lg">
           <div className="flex justify-between items-center text-white/40 text-[10px] font-bold uppercase tracking-wider">
             <span>Storage</span>
             <HardDrive className="w-3.5 h-3.5 text-purple-400" />
           </div>
           <div className="text-xs font-bold text-white mt-1.5 font-mono">482 GB Free</div>
-        </div>
-
-        {/* Live Viewers */}
-        <div className="bg-[#141414] border border-[#D50000]/30 p-3 rounded-lg">
-          <div className="flex justify-between items-center text-white/40 text-[10px] font-bold uppercase tracking-wider">
-            <span>Viewers</span>
-            <Activity className="w-3.5 h-3.5 text-[#D50000]" />
-          </div>
-          <div className="text-sm font-extrabold text-[#D50000] mt-1 font-mono">
-            {dashboard?.systemMetrics.liveViewersCount.toLocaleString()}
-          </div>
+          <div className="text-[9px] text-zinc-500 font-mono mt-1">NVMe SSD Storage</div>
         </div>
       </div>
 
@@ -209,15 +286,42 @@ export const DashboardView: React.FC = () => {
             MAJALENGKA POST TV 24 JAM: Menyajikan berita terkini dari wilayah Kabupaten Majalengka & sekitarnya. Pantau jadwal siaran digital dan update breaking news langsung dari studio kontrol.
           </div>
         </div>
-        <div className="hidden sm:flex items-center gap-3 text-[10px] font-mono text-white/60 shrink-0">
-          <span className="flex items-center gap-1 text-emerald-400">
-            <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" /> YOUTUBE ONLINE
+        <div className="hidden sm:flex items-center gap-4 text-[10px] font-mono text-white/70 shrink-0">
+          <span className="flex items-center gap-1.5">
+            <span
+              className={`w-2 h-2 rounded-full ${
+                isObsConnected ? 'bg-emerald-400 animate-pulse' : 'bg-red-500'
+              }`}
+            />
+            <span className={isObsConnected ? 'text-emerald-400 font-bold' : 'text-red-400 font-bold'}>
+              OBS {isObsConnected ? 'CONNECTED' : 'OFFLINE'}
+            </span>
           </span>
-          <span className="flex items-center gap-1 text-[#D50000]">
-            <span className="w-1.5 h-1.5 rounded-full bg-[#D50000] animate-pulse" /> OBS CONNECTED
+
+          <span className="flex items-center gap-1.5">
+            <span
+              className={`w-2 h-2 rounded-full ${
+                isYoutubeLive ? 'bg-emerald-400 animate-pulse' : 'bg-red-500'
+              }`}
+            />
+            <span className={isYoutubeLive ? 'text-emerald-400 font-bold' : 'text-red-400 font-bold'}>
+              YOUTUBE {isYoutubeLive ? 'LIVE' : 'OFF AIR'}
+            </span>
+          </span>
+
+          <span className="flex items-center gap-1.5">
+            <span
+              className={`w-2 h-2 rounded-full ${
+                isFileServerConnected ? 'bg-emerald-400 animate-pulse' : 'bg-red-500'
+              }`}
+            />
+            <span className={isFileServerConnected ? 'text-emerald-400 font-bold' : 'text-red-400 font-bold'}>
+              FILE SERVER {isFileServerConnected ? 'ONLINE' : 'OFFLINE'}
+            </span>
           </span>
         </div>
       </div>
     </div>
   );
 };
+
