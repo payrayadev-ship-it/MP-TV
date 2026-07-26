@@ -1,14 +1,6 @@
-import { GoogleGenAI } from '@google/genai';
 import { getState } from '../lib/store';
 import { AiPresenterTask } from '../types';
-
-function getGenAI() {
-  const apiKey = process.env.GEMINI_API_KEY;
-  if (!apiKey || apiKey === 'MY_GEMINI_API_KEY') {
-    return null;
-  }
-  return new GoogleGenAI({ apiKey });
-}
+import { geminiService } from './gemini';
 
 export const aiPresenterService = {
   getAll(): AiPresenterTask[] {
@@ -38,29 +30,7 @@ export const aiPresenterService = {
 
     store.aiPresenterTasks.unshift(newTask);
 
-    let scriptResult = `Halo pemirsa Majalengka Post TV, saya presenter AI digital anda. Berita hari ini: ${title}. ${content.substring(
-      0,
-      180
-    )}... Sekian berita Majalengka Terkini.`;
-
-    const ai = getGenAI();
-    if (ai) {
-      try {
-        const response = await ai.models.generateContent({
-          model: 'gemini-2.5-flash',
-          contents: `Anda adalah presenter TV berita profesional untuk "Majalengka Post TV".
-Ubah teks berita berikut menjadi naskah siaran TV langsung yang menarik, padat, dan berbahasa Indonesia formal dengan sapaan hangat untuk warga Kabupaten Majalengka:
-
-Judul: ${title}
-Konten: ${content}`,
-        });
-        if (response.text) {
-          scriptResult = response.text;
-        }
-      } catch (err) {
-        console.warn('[AI Presenter Gemini Error] Fallback template:', err);
-      }
-    }
+    const scriptResult = await geminiService.generateNewsScript(title, content);
 
     newTask.scriptText = scriptResult;
     newTask.status = 'Completed';
