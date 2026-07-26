@@ -8,90 +8,16 @@ function apiDevPlugin(): Plugin {
     name: 'api-dev-plugin',
     configureServer(server) {
       server.middlewares.use(async (req, res, next) => {
-        if (!req.url || !req.url.startsWith('/api/')) {
+        if (!req.url || (!req.url.startsWith('/api/') && req.url !== '/api')) {
           return next();
         }
 
         try {
-          const urlObj = new URL(req.url, `http://${req.headers.host || 'localhost'}`);
-          let pathname = urlObj.pathname.replace(/^\/api\//, '');
-          if (pathname.endsWith('/')) pathname = pathname.slice(0, -1);
+          const appModule = await server.ssrLoadModule('/api/index.ts');
+          const app = appModule.default;
 
-          let modulePath = '';
-          const possiblePaths = [
-            path.resolve(__dirname, `api/${pathname}.ts`),
-            path.resolve(__dirname, `api/${pathname}/index.ts`),
-          ];
-
-          for (const p of possiblePaths) {
-            try {
-              const fs = await import('fs');
-              if (fs.existsSync(p)) {
-                modulePath = p;
-                break;
-              }
-            } catch {
-              // ignore
-            }
-          }
-
-          if (!modulePath) {
-            return next();
-          }
-
-          // Parse query
-          const query: Record<string, string> = {};
-          urlObj.searchParams.forEach((val, key) => {
-            query[key] = val;
-          });
-
-          // Parse body if JSON
-          let body: any = null;
-          if (['POST', 'PUT', 'PATCH'].includes(req.method || '')) {
-            const buffers: Buffer[] = [];
-            for await (const chunk of req) {
-              buffers.push(chunk);
-            }
-            const dataStr = Buffer.concat(buffers).toString('utf-8');
-            if (dataStr) {
-              try {
-                body = JSON.parse(dataStr);
-              } catch {
-                body = dataStr;
-              }
-            }
-          }
-
-          // Augment req and res objects to match VercelRequest and VercelResponse interfaces
-          const vercelReq = Object.assign(req, {
-            query,
-            body,
-            cookies: {},
-          });
-
-          const vercelRes = res as any;
-          if (typeof vercelRes.status !== 'function') {
-            vercelRes.status = function (statusCode: number) {
-              this.statusCode = statusCode;
-              return this;
-            };
-          }
-          if (typeof vercelRes.json !== 'function') {
-            vercelRes.json = function (data: any) {
-              if (!this.getHeader('Content-Type')) {
-                this.setHeader('Content-Type', 'application/json');
-              }
-              this.end(JSON.stringify(data));
-              return this;
-            };
-          }
-
-          // Load module
-          const handlerModule = await server.ssrLoadModule(modulePath);
-          const handler = handlerModule.default;
-
-          if (typeof handler === 'function') {
-            await handler(vercelReq, vercelRes);
+          if (typeof app === 'function') {
+            app(req, res, next);
           } else {
             next();
           }
